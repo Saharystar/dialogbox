@@ -86,7 +86,7 @@ hideDialogBox = function()
     dialogBoxNameNPC:hide()
 end
 
-initializeDialogBox = function()
+initializeDialogBox = function ()
     windower.register_event('target change', function(number)
         target = 0
         if target ~= number then
@@ -104,30 +104,89 @@ initializeDialogBox = function()
                                 messagesWords[i] = v
                                 messageNpcFinal[1] = messageNpcFinal[1] .. ' ' ..messagesWords[i]
                             end
-                            messageNpc = windower.regex.replace(messageNpcFinal[1], '[]', '')
-                            messageNpcRegA = windower.regex.replace(messageNpc, '[^A-Za-z0-9-,"\'?!.()\n ]', '\'')
-                            renderDialogBox(nameNpc, messageNpcRegA)
+                            messageNpc = windower.regex.replace(messageNpcFinal[1], '[]', '')
+                            messageNpcRegA = windower.regex.replace(messageNpc, '[]', ' ')
+                            messageNpcRegB = windower.regex.replace(messageNpcRegA, '/[�`]+/i', 'A')
+                            messageNpcRegC = windower.regex.replace(messageNpcRegB, '[^A-Za-z0-9-,"\'?!.()~éèàôûùÖü:;&\\n ]', '')
+                            renderDialogBox(nameNpc, messageNpcRegC)
                             showDialogBox()
                         else
-                            messageNpc = windower.regex.replace(messageNpc, '[]', '')
-                            messageNpcRegA = windower.regex.replace(messageNpc, '[^A-Za-z0-9-,"\'?!.()\n ]', '\'')
-                            renderDialogBox(nameNpc, messageNpcRegA)
+                            messageNpc = windower.regex.replace(messageNpc, '[]', '')
+                            messageNpcRegA = windower.regex.replace(messageNpc, '[]', ' ')
+                            messageNpcRegB = windower.regex.replace(messageNpcRegA, '/[�`]+/i', 'A')
+                            messageNpcRegC = windower.regex.replace(messageNpcRegB, '[^A-Za-z0-9-,"\'?!.()~éèàôûùÖü:;&\\n ]', '')
+                            renderDialogBox(nameNpc, messageNpcRegC)
                             showDialogBox()
                         end
                     end
+                elseif (original_mode == 190) then
+                    if original == '     ' then
+                        hideDialogBox()
+                    else
+                        messageNPCWrapped = wrapMessage(original, dialogBoxMessageNPCSettings.text.size)
+                        if wrapped then
+                            messageNpcFinal = {''}
+                            for i, v in pairs(messagesWords) do
+                                messagesWords[i] = v
+                                messageNpcFinal[1] = messageNpcFinal[1] .. ' ' ..messagesWords[i]
+                            end
+                            messageNpc = windower.regex.replace(messageNpcFinal[1], '[]', '')
+                            messageNpcRegA = windower.regex.replace(messageNpc, '[]', ' ')
+                            messageNpcRegB = windower.regex.replace(messageNpcRegA, '/[�`]+/i', 'A')
+                            messageNpcRegC = windower.regex.replace(messageNpcRegB, '[^A-Za-z0-9-,"\'?!.()~éèàôûùÖü:;&\\n ]', '')
+                            renderDialogBox('', messageNpcRegC)
+                            showDialogBox()
+                            dialogBoxBgNameNPC:hide()
+                        else
+                            messageNpc = windower.regex.replace(original, '[]', '')
+                            messageNpcRegA = windower.regex.replace(messageNpc, '[]', ' ')
+                            messageNpcRegB = windower.regex.replace(messageNpcRegA, '/[�`]+/i', 'A')
+                            messageNpcRegC = windower.regex.replace(messageNpcRegB, '[^A-Za-z0-9-,"\'?!.()~éèàôûùÖü:;&\\n ]', '')
+                            renderDialogBox('', messageNpcRegC)
+                            showDialogBox()
+                            dialogBoxBgNameNPC:hide()
+                        end
+                    end
+                else
+                    windower.register_event('outgoing chunk', function (id, data)
+                        if (id == 0x00C)  then
+                            hideDialogBox()
+                            initializeDialogBox()
+                        elseif (id == 0x00F) then
+                            hideDialogBox()
+                            initializeDialogBox()
+                        elseif (id == 0x011) then
+                            hideDialogBox()
+                            initializeDialogBox()
+                        end    
+                    end)
                 end
             end)
         else
-            target = 0
             hideDialogBox()
         end
-    end)
+    end)  
 end
+
+windower.register_event('status change', function(new_status_id, old_status_id)
+    windower.register_event('keyboard', function (dik, down)
+        if (dik == 28) and down then
+            if (new_status_id == 4) then
+                hideDialogBox()
+                initializeDialogBox()
+            elseif (new_status_id == 0) then
+                hideDialogBox()
+            end
+        end
+    end)
+end)
 
 windower.register_event('login', function()
     initializeDialogBox()
 end)
 
 windower.register_event('load', function()
-    if windower.ffxi.get_info().logged_in then initializeDialogBox() end
+    if windower.ffxi.get_info().logged_in then
+        initializeDialogBox()
+    end
 end)
